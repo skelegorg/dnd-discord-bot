@@ -152,6 +152,7 @@ async def combat(ctx):
     newInitDict = sorted(initDict, reverse = True)
 
     for i in range(len(newInitDict)):
-        await channel.send(f"{i}: {newInitDict[i]}")
+        newI = i + 1
+        await channel.send(f"{newI}: {newInitDict[i]}")
 
 client.run('Token')
