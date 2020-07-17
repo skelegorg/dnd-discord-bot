@@ -98,6 +98,6 @@ async def roll(ctx, type, modifier:int):
     else:
         # parse type to determine number of rolls and dype of dice
         # check the first character
-        print('not init')
+        print('Invalid argument when passing modifier during *roll execution.')
 
 client.run('Token')
