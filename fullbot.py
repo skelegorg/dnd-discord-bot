@@ -86,14 +86,17 @@ async def new(ctx):
         print("Invalid argument when passing modifier during *new execution.")
         
 @client.command()
-async def roll(ctx, type, *modifier):
+async def roll(ctx, type, modifier:int):
     author = ctx.message.author
     if(type == "init" or type == "initiative"):
-        roll = random.randint(1, 20)
-        init = roll + modifier
-        await ctx.send(str(author.mention) + ' rolled a ' + str(init))
+        roll = random.randrange(1, 20)
+        try:
+            init = roll + modifier
+            await ctx.send(str(author.mention) + ' rolled a ' + str(init))
+        except ValueError:
+            await ctx.send('Make sure your modifier is a number. Here is your roll without your modifier: ' + str(roll))
     else:
-        # parse type to determine number of rolls and type of dice
+        # parse type to determine number of rolls and dype of dice
         # check the first character
         print('not init')
 
