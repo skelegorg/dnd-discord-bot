@@ -7,6 +7,8 @@ import string
 client = commands.Bot(command_prefix='*')
 client.remove_command('help')
 
+characterList = {}
+enemyList = {}
 
 @client.event
 async def on_ready():
@@ -39,5 +41,60 @@ async def help(ctx):
 
     await recipient.send(embed=embed)
 
+
+@client.command(pass_context=True)
+async def new(ctx):
+    author = ctx.message.author
+    channel = ctx.message.channel
+    await channel.send("Hello! To create a new player, type **p**. To enter data for an enemy, type **e**")
+    print(str(author.mention) + " initiated command *new.")
+    msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+    if msg.content.lower() == "p":
+        await channel.send("Enter the name, hp, ac, and stats (top -> down) of the character separated by spaces.")
+        msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+        msgContent = str(msg.content)
+        msg = msgContent.split(' ')
+        characterList[msg[0]] = {"health": int(msg[1]),
+                                 "ac": int(msg[2]),
+                                 "str": int(msg[3]),
+                                 "dex": int(msg[4]),
+                                 "con": int(msg[5]),
+                                 "int": int(msg[6]),
+                                 "wis": int(msg[7]),
+                                 "chr": int(msg[8])}
+        await channel.send("New character: " + msg[0] + ".")
+        print("Successfully created " + msg[0] + ".")
+
+    elif msg.content.lower() == "e":
+        await channel.send("Enter the name, hp, ac, and stats (top -> down) of the enemy separated by spaces.")
+        msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+        msgContent = str(msg.content)
+        msg = msgContent.split(' ')
+        enemyList[msg[0]] = {"health": int(msg[1]),
+                                 "ac": int(msg[2]),
+                                 "str": int(msg[3]),
+                                 "dex": int(msg[4]),
+                                 "con": int(msg[5]),
+                                 "int": int(msg[6]),
+                                 "wis": int(msg[7]),
+                                 "chr": int(msg[8])}
+        await channel.send("New enemy: " + msg[0] + ".")
+        print("Successfully created " + msg[0] + ".")
+    
+    else:
+        await channel.send("Invalid argument!")
+        print("Invalid argument when passing modifier during *new execution.")
+        
+@client.command()
+async def roll(ctx, type, *modifier):
+    author = ctx.message.author
+    if(type == "init" or type == "initiative"):
+        roll = random.randint(1, 20)
+        init = roll + modifier
+        await ctx.send(str(author.mention) + ' rolled a ' + str(init))
+    else:
+        # parse type to determine number of rolls and type of dice
+        # check the first character
+        print('not init')
 
 client.run('Token')
