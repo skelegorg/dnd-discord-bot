@@ -167,4 +167,4 @@ async def combat(ctx):
         msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
 
 
-client.run('NzMzNDU1MTQ5NDU2MTYyOTc5.XxDZ3g.1YdwhfbFGu4EjF2ukds7JWC8OLA')
+client.run('Token')
