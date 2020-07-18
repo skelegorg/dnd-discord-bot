@@ -159,7 +159,7 @@ async def combat(ctx):
         await channel.send(str(author.mention) + " rolled a " + str(result) + " for initative!")
         initDict[str(name)] = str(result)
 
-    newInitDict = sorted(initDict, reverse=True)
+    newInitDict = sorted(initDict.items(), key = lambda x: x[1], reverse=True)
 
     for key in newInitDict:
         await channel.send(f"{str(key)}, it is your turn!")
