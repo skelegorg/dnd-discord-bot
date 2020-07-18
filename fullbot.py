@@ -3,6 +3,7 @@ from discord.ext import commands
 import json
 import random
 import string
+import math
 
 client = commands.Bot(command_prefix='*')
 client.remove_command('help')
@@ -48,14 +49,16 @@ async def new(ctx):
     author = ctx.message.author
     channel = ctx.message.channel
     await channel.send("Hello! To create a new player, type **p**. To enter data for an enemy, type **e**")
-    print(str(author.mention) + " initiated command *new.")
+    print(str(author) + " initiated command *new.")
     msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
     if msg.content.lower() == "p":
         await channel.send("Enter the name, hp, ac, and stats (top -> down) of the character separated by spaces.")
         msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
         msgContent = str(msg.content)
         msg = msgContent.split(' ')
-        characterList[msg[0]] = {"health": int(msg[1]),
+        characterList[msg[0]] = {"name": str(msg[0]),
+                                 "author": author,
+                                 "health": int(msg[1]),
                                  "ac": int(msg[2]),
                                  "str": int(msg[3]),
                                  "dex": int(msg[4]),
@@ -71,7 +74,8 @@ async def new(ctx):
         msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
         msgContent = str(msg.content)
         msg = msgContent.split(' ')
-        enemyList[msg[0]] = {"health": int(msg[1]),
+        enemyList[msg[0]] = {"name": str(msg[0]),
+                             "health": int(msg[1]),
                              "ac": int(msg[2]),
                              "str": int(msg[3]),
                              "dex": int(msg[4]),
@@ -107,18 +111,23 @@ async def roll(ctx, param, *modifier):
         # parse type to determine number of rolls and dype of dice
         # check the first character
         paramSplit = []
-        rollCount = 1
         for letter in range(len(param)):
             paramSplit.append(param[letter])
         if(paramSplit[0] == 'd' or paramSplit[0] == 'D'):
-            rollCount = 1
+            await ctx.send(str(author.mention) + ' rolled a ' + str(random.randint(1, paramSplit[1])) + '. :game_die:')
         else:
-            for item in paramSplit:
-                try:
-                    item = int(item)
-                    print(item)
-                except ValueError:
-                    print(item)
+            if("d" in paramSplit or "D" in paramSplit):
+                # nomial path
+                itemstr = ''
+                for item in paramSplit:
+                    itemstr += str(item)
+                splitItem = itemstr.split('d')
+                roll = 0
+                for rollnum in range(int(splitItem[0])):
+                    roll += random.randint(1, int(splitItem[1]))
+                await ctx.send(str(author.mention) + ' rolled a ' + str(roll) + '. :game_die:')
+            else:
+                await ctx.send('Please format your roll correctly: \"[number of rolls]d[die type]\". i.g. \"5d8\".*r')
 
 
 @client.command(pass_context=True)
@@ -143,16 +152,20 @@ async def combat(ctx):
         dex = (characterList[combatList[i]])
         cool = random.randint(1, 20)
         mod = (dex["dex"] / 2)
-        mod = mod.__floor__()
+        mod = math.floor(mod)
         result = cool + mod
-        print(f"{dex}\'s initiative is {result}.")
-        await channel.send(str(author.mention) + " rolled a " + result + " for initative!")
-        initDict.update(dex: result)
+        await channel.send(str(author.mention) + " rolled a " + str(result) + " for initative!")
+        initDict[str(dex)] = str(result)
 
-    newInitDict = sorted(initDict, reverse = True)
+    newInitDict = sorted(initDict, reverse=True)
 
     for i in range(len(newInitDict)):
         newI = i + 1
-        await channel.send(f"{newI}: {newInitDict[i]}")
+        await channel.send(f"{str(newI)}: {newInitDict[i]['name']}")
 
-client.run('Token')
+    for j in range(len(newInitDict)):
+        await channel.send(f"{str(newInitDict[i])}, it is your turn!")
+        msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+
+
+client.run('token here')
