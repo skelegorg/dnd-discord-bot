@@ -149,23 +149,22 @@ async def combat(ctx):
             return
 
     for i in range(len(combatList)):
-        dex = (characterList[combatList[i]])
+        name = (characterList[combatList[i]]["name"])
+        author = (characterList[combatList[i]]["author"])
+        dex = (characterList[combatList[i]]["dex"])
         cool = random.randint(1, 20)
-        mod = (dex["dex"] / 2)
+        mod = ((dex - 10) / 2)
         mod = math.floor(mod)
         result = cool + mod
         await channel.send(str(author.mention) + " rolled a " + str(result) + " for initative!")
-        initDict[str(dex)] = str(result)
+        initDict[str(name)] = str(result)
 
     newInitDict = sorted(initDict, reverse=True)
 
-    for i in range(len(newInitDict)):
-        newI = i + 1
-        await channel.send(f"{str(newI)}: {newInitDict[i]['name']}")
-
-    for j in range(len(newInitDict)):
-        await channel.send(f"{str(newInitDict[i])}, it is your turn!")
+    for key in newInitDict:
+        await channel.send(f"{str(key)}, it is your turn!")
+        await channel.send("Enter any changes in HP that resulted from your turn, e.g. \"Goblin 5\".")
         msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
 
 
-client.run('token here')
+client.run('Token')
