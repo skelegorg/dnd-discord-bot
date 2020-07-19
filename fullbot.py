@@ -114,7 +114,12 @@ async def roll(ctx, param, *modifier):
         for letter in range(len(param)):
             paramSplit.append(param[letter])
         if(paramSplit[0] == 'd' or paramSplit[0] == 'D'):
-            await ctx.send(str(author.mention) + ' rolled a ' + str(random.randint(1, paramSplit[1])) + '. :game_die:')
+            if int(paramSplit[1]) <= 100:
+                    a = str(random.randint(1, paramSplit[1]))
+                    await ctx.send(f"{str(author.mention)} rolled a {str(a)}. :game_die:") #Exception TypeError: concatenating int to str is not possible, but where is the int?????
+            else:
+                await ctx.send("Make sure that you are only rolling dice less than or equal to 100!")
+                return
         else:
             if("d" in paramSplit or "D" in paramSplit):
                 # nomial path
@@ -123,11 +128,16 @@ async def roll(ctx, param, *modifier):
                     itemstr += str(item)
                 splitItem = itemstr.split('d')
                 roll = 0
-                for rollnum in range(int(splitItem[0])):
-                    roll += random.randint(1, int(splitItem[1]))
-                await ctx.send(str(author.mention) + ' rolled a ' + str(roll) + '. :game_die:')
+                if int(splitItem[1]) <= 100 and int(splitItem[0]) <= 100:
+                    for rollnum in range(int(splitItem[0])):
+                        roll += random.randint(1, int(splitItem[1]))
+                    await ctx.send(str(author.mention) + ' rolled a ' + str(roll) + '. :game_die:')
+                else:
+                    await ctx.send("Make sure that you are only rolling dice less than or equal to 100!")
+                    return
             else:
                 await ctx.send('Please format your roll correctly: \"[number of rolls]d[die type]\". i.g. \"5d8\".*r')
+                return
 
 
 @client.command(pass_context=True)
@@ -167,4 +177,4 @@ async def combat(ctx):
         msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
 
 
-client.run('Token')
+client.run('token here')
