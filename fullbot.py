@@ -268,4 +268,4 @@ async def combat(ctx):
         j += 0
 
 
-client.run('NzMzNDU1MTQ5NDU2MTYyOTc5.XxMhUA.obQCmhOIV5Ts1z-3ArSzUmz5pHU')
+client.run('Token')
