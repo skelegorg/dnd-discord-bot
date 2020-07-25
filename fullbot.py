@@ -77,8 +77,12 @@ def delCharacter(channel_ID, chrName):
         allChr = json.loads(allChr)
     try:
         workingDict = allChr[channel]
-        workingDict = workingDict.pop(chrName)
+        del workingDict[chrName]
         allChr[channel] = workingDict
+        with open('characters.json', 'w') as file:
+            dump = allChr
+            finaldump = json.dumps(dump)
+            json.dump(finaldump, file, indent=4)
         return True
     except:
         print("delete failed")
@@ -240,6 +244,7 @@ async def combat(ctx):
     combatList = []
     initDict = {}
     characterList = loadCharacters(channel, ctx)
+    print(characterList)
     for i in range(len(msg)):
         if msg[i] in characterList:
             combatList.append(msg[i])
@@ -249,10 +254,12 @@ async def combat(ctx):
 
     for i in range(len(combatList)):
         dex = (characterList[combatList[i]])
-        cool = random.randint(1, 20)
-        mod = (dex["dex"] / 2)
+        print(dex[combatList[i]]["dex"])
+        dex = dex[combatList[i]]["dex"]
+        roll = random.randint(1, 20)
+        mod = (dex / 2)
         mod = math.floor(mod)
-        result = cool + mod
+        result = roll + mod
         await ctx.send(str(author.mention) + " rolled a " + str(result) + " for initative!")
         initDict[str(dex)] = str(result)
 
@@ -260,7 +267,8 @@ async def combat(ctx):
 
     for i in range(len(newInitDict)):
         newI = i + 1
-        await ctx.send(f"{str(newI)}: {newInitDict[i]['name']}")
+        await ctx.send(f"{str(newI)}: {combatList[i]}")
+        # newInitDict[i]['name']
 
     for j in range(len(newInitDict)):
         await ctx.send(f"{str(newInitDict[i])}, it is your turn!")
