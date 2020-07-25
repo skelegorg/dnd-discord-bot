@@ -173,6 +173,14 @@ async def new(ctx):
 
 
 @client.command(pass_context=True)
+async def editstats(ctx, character):
+    # new stats
+    author = str(ctx.author)
+    channel = str(ctx.channel.id)
+    channelDict = loadCharacters(channel, ctx)
+
+
+@client.command(pass_context=True)
 async def delete(ctx):
     channel = str(ctx.channel.id)
     author = str(ctx.author.mention)
@@ -276,4 +284,4 @@ async def combat(ctx):
         j += 0
 
 
-client.run('Token')
+client.run('NzMzNDU1MTQ5NDU2MTYyOTc5.XxDZVg.ZCslpXOeJpPrfT64mGP3DpuysMs')
