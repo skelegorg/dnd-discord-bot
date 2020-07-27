@@ -126,10 +126,8 @@ async def help(ctx):
 
 @ client.command(pass_context=True)
 async def new(ctx):
-    author = ctx.author
     channel = ctx.channel.id
     await ctx.send("Hello! To create a new player, type **p**. To enter data for an enemy, type **e**")
-    print(str(author) + " initiated command *new.")
     msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
     if msg.content.lower() == "p":
         await ctx.send("Enter the name, hp, ac, and stats (top -> down) of the character separated by spaces.")
@@ -170,6 +168,47 @@ async def new(ctx):
     else:
         await ctx.send("Invalid argument!")
         print("Invalid argument when passing modifier during *new execution.")
+
+
+@client.command(pass_context=True)
+async def editstats(ctx, character):
+    # new stats
+    author = str(ctx.author)
+    channel = str(ctx.channel.id)
+    character = str(character)
+    channelDict = loadCharacters(channel, ctx)
+    if(character in channelDict):
+        # work
+        try:
+            charDict = channelDict[character][character]
+        except:
+            await ctx.send("No character \"" + character + "\" found.")
+            return
+        print(charDict)
+        if(charDict['author'] == author):
+            # work
+            await ctx.send(
+                "Which stat do you want to change? (enter \'str\', \'dex\', \'con\', \'int\', \'wis\', or \'chr\').")
+            msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+            msg = msg.content
+            if(msg == 'str' or 'dex' or 'con' or 'int' or 'wis' or 'chr'):
+                stat = msg
+                await ctx.send("How much would you like to increase the statistic?")
+                deltaStat = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+                deltaStat = deltaStat.content
+                charDict[stat] += int(deltaStat)
+                saveDict = {character: charDict}
+                print(charDict)
+                delCharacter(channel, character)
+                saveCharacter(character, channel, saveDict)
+                await ctx.send(str(msg) + " stat changed to " + str(charDict[stat]) + ".")
+            else:
+                await ctx.send("Please enter a valid stat in a 3-character string.")
+        else:
+            await ctx.send("You can only delete your own character.")
+    else:
+        await ctx.send("No such character " + character + " found.")
+        return
 
 
 @client.command(pass_context=True)
