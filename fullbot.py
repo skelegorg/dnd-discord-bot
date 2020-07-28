@@ -89,6 +89,85 @@ def delCharacter(channel_ID, chrName):
         return False
 
 
+def deltaXp(channel, character, operation, quantity):
+    # do stuff
+    channel = str(channel)
+    character = str(character)
+    quantity = int(quantity)
+    if(operation == "add" or "sub"):
+        # do it
+        with open('xp.json', 'r') as f:
+            allChr = json.load(f)
+            allChr = json.loads(allChr)
+        if(channel in allChr):
+            channelDict = allChr[channel]
+            if(character in channelDict):
+                workingDict = channelDict[character]
+                if(operation == 'add'):
+                    workingDict['xp'] += quantity
+                elif(operation == 'sub'):
+                    workingDict['xp'] -= quantity
+                channelDict[character] = workingDict
+                allChr[channel] = channelDict
+                with open('xp.json', 'w') as file:
+                    dump = allChr
+                    finaldump = json.dumps(dump)
+                    json.dump(finaldump, file, indent=4)
+            else:
+                # create an empty xp dict and perform the operation
+                channelDict.update({character: {'xp': 0, 'level': 0}})
+                workingDict = channelDict[character]
+                if(operation == 'add'):
+                    workingDict['xp'] += quantity
+                elif(operation == 'sub'):
+                    workingDict['xp'] -= quantity
+                channelDict[character] = workingDict
+                allChr[channel] = channelDict
+                with open('xp.json', 'w') as file:
+                    dump = allChr
+                    finaldump = json.dumps(dump)
+                    json.dump(finaldump, file, indent=4)
+        else:
+            # create a channel dictionary
+            allChr.update({channel: {"channel_init": "channel_init"}})
+            channelDict = allChr[channel]
+            channelDict.update({character: {'xp': 0, 'level': 0}})
+            workingDict = channelDict[character]
+            if(operation == 'add'):
+                workingDict['xp'] += quantity
+            elif(operation == 'sub'):
+                workingDict['xp'] -= quantity
+            channelDict[character] = workingDict
+            allChr[channel] = channelDict
+            with open('xp.json', 'w') as file:
+                dump = allChr
+                finaldump = json.dumps(dump)
+                json.dump(finaldump, file, indent=4)
+        return True
+    else:
+        return False
+
+
+def loadXpLevels(channel, character):
+    channel = str(channel)
+    character = str(character)
+    with open('xp.json', 'r') as f:
+        allChr = json.load(f)
+        allChr = json.loads(allChr)
+    if(channel in allChr):
+        channelDict = allChr[channel]
+        if(character in channelDict):
+            charDict = channelDict[character]
+            charXp = charDict['xp']
+            charLvl = charDict['level']
+            returnList = [charXp, charLvl]
+            return returnList
+        else:
+            return "No such character associated with this channel"
+    else:
+        return "No characters associated with this channel"
+
+
 enemyList = {}
 
 
@@ -168,6 +247,94 @@ async def new(ctx):
     else:
         await ctx.send("Invalid argument!")
         print("Invalid argument when passing modifier during *new execution.")
+
+
+@client.command(pass_context=True)
+async def changexp(ctx):
+    # dewit
+    channel = str(ctx.channel.id)
+    await ctx.send('Which character\'s xp count is being changed?')
+    character = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+    character = str(character.content)
+    await ctx.send('Are you adding (\'add\') or subtracting (\'sub\') from your xp count?')
+    res1 = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+    res1 = res1.content
+    res1 = res1.lower()
+    if(res1 == 'add'):
+        await ctx.send('How much xp do you want to add?')
+        res2 = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+        res2 = res2.content
+        try:
+            intres2 = int(res2)
+        except:
+            await ctx.send('Make sure to enter a number.')
+            return
+        if(deltaXp(channel, character, 'add', intres2) == True):
+            await ctx.send('The xp change was successful.')
+        else:
+            await ctx.send('The xp change failed. Make sure you are typing your character\'s name correct (caps count!) or that you have this character registered in this channel.')
+
+    elif(res1 == 'sub'):
+        # ask amount
+        await ctx.send('How much xp do you want to add?')
+        res2 = await client.wait_for("message", check=lambda message: message.author == ctx.author)
+        res2 = res2.content
+        try:
+            intres2 = int(res2)
+        except:
+            await ctx.send('Make sure to enter a number.')
+            return
+        if(deltaXp(channel, character, 'sub', intres2) == True):
+            await ctx.send('The xp change was successful.')
+        else:
+            await ctx.send('The xp change failed. Make sure you are typing your character\'s name correctl (caps count!) or that you have this character registered in this channel.')
+    else:
+        await ctx.send('Please enter either \'add\' or \'sub\'.')
+
+
+@client.command(pass_context=True)
+async def xp(ctx, *character):
+    try:
+        charName = str(character[0])
+    except:
+        await ctx.send("Please call the function as follows: *xp charactername")
+        return
+    returnList = loadXpLevels(str(ctx.channel.id), charName)
+    # try:
+    xp = returnList[0]
+    try:
+        throwaway = int(xp)
+        throwaway += 0
+    except:
+        await ctx.send(returnList)
+        return
+    await ctx.send(charName + " has " + str(xp) + " xp.")
+
+
+@client.command(pass_context=True)
+async def level(ctx, *character):
+    # dewit
+    channel = str(ctx.channel.id)
+    try:
+        charName = str(character[0])
+    except:
+        await ctx.send("Please call the function as follows: *level charactername")
+        return
+    returnList = loadXpLevels(channel, charName)
+    xpLevel = returnList[0]
+    try:
+        throwaway = int(xpLevel)
+        throwaway += 0
+    except:
+        await ctx.send(returnList)
+        return
+
+    xpList = [300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000,
+              100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000]
+    for i in xpList:
+        if int(xpLevel) < int(xpList[i]):
+            level = i + 1
+        await ctx.send(charName + " is level " + str(level) + ".")
 
 
 @client.command(pass_context=True)
@@ -292,13 +459,15 @@ async def combat(ctx):
             return
 
     for i in range(len(combatList)):
-        dex = (characterList[combatList[i]])
-        print(dex[combatList[i]]["dex"])
-        dex = dex[combatList[i]]["dex"]
+        dex = combatList[i]
+        print(dex)
+        d = dex[i]["dex"]
+        print(d)
         roll = random.randint(1, 20)
-        mod = (dex / 2)
+        mod = (d / 2)
         mod = math.floor(mod)
         result = roll + mod
+        print(result)
         await ctx.send(str(author.mention) + " rolled a " + str(result) + " for initative!")
         initDict[str(dex)] = str(result)
 
@@ -307,12 +476,11 @@ async def combat(ctx):
     for i in range(len(newInitDict)):
         newI = i + 1
         await ctx.send(f"{str(newI)}: {combatList[i]}")
-        # newInitDict[i]['name']
 
     for j in range(len(newInitDict)):
-        await ctx.send(f"{str(newInitDict[i])}, it is your turn!")
+        await ctx.send(f"{str(newInitDict[i][newInitDict[msg[i]]])}, it is your turn!")
         msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
         j += 0
 
 
-client.run('Token')
+client.run('token here')
