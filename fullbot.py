@@ -214,18 +214,22 @@ async def new(ctx):
         msgContent = str(msg.content)
         msg = msgContent.split(' ')
         characterList = {}
-        characterList[msg[0]] = {"name": str(msg[0]),
-                                 "author": str(ctx.author),
-                                 "health": int(msg[1]),
-                                 "ac": int(msg[2]),
-                                 "str": int(msg[3]),
-                                 "dex": int(msg[4]),
-                                 "con": int(msg[5]),
-                                 "int": int(msg[6]),
-                                 "wis": int(msg[7]),
-                                 "chr": int(msg[8])}
-        saveCharacter(characterList[msg[0]]["name"], channel, characterList)
-        await ctx.send("New character: " + characterList[msg[0]]["name"] + ".")
+        try:
+            characterList[msg[0]] = {"name": str(msg[0]),
+                                     "author": str(ctx.author.mention),
+                                     "health": int(msg[1]),
+                                     "ac": int(msg[2]),
+                                     "str": int(msg[3]),
+                                     "dex": int(msg[4]),
+                                     "con": int(msg[5]),
+                                     "int": int(msg[6]),
+                                     "wis": int(msg[7]),
+                                     "chr": int(msg[8])}
+            saveCharacter(characterList[msg[0]]
+                          ["name"], channel, characterList)
+            await ctx.send("New character: " + characterList[msg[0]]["name"] + ".")
+        except IndexError:
+            await ctx.send("Stats entered incorrectly.")
 
     elif msg.content.lower() == "e":
         await ctx.send("Enter the name, hp, ac, and stats (top -> down) of the enemy separated by spaces.")
@@ -411,46 +415,46 @@ async def roll(ctx, param, *modifier):
         await ctx.send('Make sure your modifier is a number!')
         print("Invalid argument when passing modifier during *roll execution.")
         return
+    paramSplit = []
+    for letter in range(len(param)):
+        paramSplit.append(param[letter])
     print("Roll initiated successfully.")
     author = ctx.message.author
     if(param == "init" or param == "initiative"):
         await ctx.send(str(author.mention) + ' rolled a ' + str((random.randint(1, 20) + mod)))
-    else:
         # parse type to determine number of rolls and dype of dice
         # check the first character
-        paramSplit = []
-        for letter in range(len(param)):
-            paramSplit.append(param[letter])
         if(paramSplit[0] == 'd' or paramSplit[0] == 'D'):
+            print("if paramsplit d")
             await ctx.send(str(author.mention) + ' rolled a ' + str(random.randint(1, paramSplit[1])) + '. :game_die:')
+    else:
+        if("d" in paramSplit or "D" in paramSplit):
+            print("if d in")
+            # nomial path
+            itemstr = ''
+            for item in paramSplit:
+                itemstr += str(item)
+            splitItem = itemstr.split('d')
+            roll = 0
+            for rollnum in range(int(splitItem[0])):
+                roll += random.randint(1, int(splitItem[1]))
+                rollnum += 0
+            await ctx.send(str(author.mention) + ' rolled a ' + str(roll) + '. :game_die:')
         else:
-            if("d" in paramSplit or "D" in paramSplit):
-                # nomial path
-                itemstr = ''
-                for item in paramSplit:
-                    itemstr += str(item)
-                splitItem = itemstr.split('d')
-                roll = 0
-                for rollnum in range(int(splitItem[0])):
-                    roll += random.randint(1, int(splitItem[1]))
-                    rollnum += 0
-                await ctx.send(str(author.mention) + ' rolled a ' + str(roll) + '. :game_die:')
-            else:
-                await ctx.send('Please format your roll correctly: \"[number of rolls]d[die type]\". i.g. \"5d8\".*r')
+            await ctx.send('Please format your roll correctly: \"[number of rolls]d[die type]\". i.g. \"5d8\".')
 
 
 @ client.command(pass_context=True)
 async def combat(ctx):
     channel = ctx.message.channel.id
-    author = ctx.message.author
     await ctx.send("Combat initiated! Please type the names of the characters in combat. Please make sure they are registered with *new.")
     msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
     msgContent = str(msg.content)
     msg = msgContent.split()
     combatList = []
-    initDict = {}
+    initOrder = []
+    realDict = {}
     characterList = loadCharacters(channel, ctx)
-    print(characterList)
     for i in range(len(msg)):
         if msg[i] in characterList:
             combatList.append(msg[i])
@@ -459,28 +463,28 @@ async def combat(ctx):
             return
 
     for i in range(len(combatList)):
-        dex = combatList[i]
-        print(dex)
-        d = dex[i]["dex"]
-        print(d)
+        char = combatList[i]
+        d = characterList[char]
+        dex = d[char]["dex"]
         roll = random.randint(1, 20)
-        mod = (d / 2)
+        mod = (dex / 2)
         mod = math.floor(mod)
         result = roll + mod
-        print(result)
-        await ctx.send(str(author.mention) + " rolled a " + str(result) + " for initative!")
-        initDict[str(dex)] = str(result)
+        await ctx.send(characterList[char][char]["author"] + " rolled a " + str(result) + " for initative!")
+        realDict[char] = result
 
-    newInitDict = sorted(initDict, reverse=True)
+    newInitDict = sorted(realDict.items(), key=lambda x: x[1], reverse=True)
+
+    for i in newInitDict:
+        initOrder.append(i[0])
 
     for i in range(len(newInitDict)):
         newI = i + 1
-        await ctx.send(f"{str(newI)}: {combatList[i]}")
+        await ctx.send(f"{str(newI)}: {initOrder[i]}")
 
-    for j in range(len(newInitDict)):
-        await ctx.send(f"{str(newInitDict[i][newInitDict[msg[i]]])}, it is your turn!")
+    for i in range(len(realDict)):
+        await ctx.send(f"{initOrder[i]}, it is your turn!")
         msg = await client.wait_for("message", check=lambda message: message.author == ctx.author)
-        j += 0
 
 
 client.run('token here')
